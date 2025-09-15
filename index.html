@@ -31,7 +31,7 @@
       const NAV_MAX = 23;
       const IND_MIN = 500;   // floor
       const IND_MAX = 1500;  // ceiling
-      const IND_STEP = 10;   // granularity
+      const IND_STEP = 1;    // granularity (changed from 10 -> 1)
 
       // Derived calculations
       const capacity = useMemo(() => navigators * indGoal, [navigators, indGoal]);
@@ -51,6 +51,14 @@
       const requiredIndGoalMonthly = useMemo(() => {
         return Math.ceil((teamGoal / (navigators || 1)) / 12);
       }, [teamGoal, navigators]);
+
+      // Helper for +1 / -1 precision controls
+      const bumpIndGoal = (delta) => {
+        setIndGoal((g) => {
+          const next = Math.min(IND_MAX, Math.max(IND_MIN, g + delta));
+          return Math.round(next); // keep it integer
+        });
+      };
 
       return (
         <div className="min-h-screen w-full bg-slate-50 text-slate-900">
@@ -112,7 +120,7 @@
 
               <div className="bg-white rounded-2xl shadow p-4">
                 <label className="block text-sm font-medium text-slate-700">Individual annual goal per CAN</label>
-                <div className="mt-3">
+                <div className="mt-3 flex items-center gap-2">
                   <input
                     type="range"
                     min={IND_MIN}
@@ -121,12 +129,34 @@
                     value={indGoal}
                     onChange={(e) => setIndGoal(Number(e.target.value))}
                     className="w-full"
+                    aria-label="Individual annual goal slider"
                   />
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-                    <span>{nf.format(IND_MIN)}</span>
-                    <span className="text-slate-900 font-semibold text-sm">{nf.format(indGoal)}</span>
-                    <span>{nf.format(IND_MAX)}</span>
+                  {/* Precision helper buttons */}
+                  <div className="flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => bumpIndGoal(+1)}
+                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded-md border border-slate-200 text-xs"
+                      title="Increase by 1"
+                      aria-label="Increase by 1"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => bumpIndGoal(-1)}
+                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded-md border border-slate-200 text-xs"
+                      title="Decrease by 1"
+                      aria-label="Decrease by 1"
+                    >
+                      ▼
+                    </button>
                   </div>
+                </div>
+                <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+                  <span>{nf.format(IND_MIN)}</span>
+                  <span className="text-slate-900 font-semibold text-sm">{nf.format(indGoal)}</span>
+                  <span>{nf.format(IND_MAX)}</span>
                 </div>
                 <p className="mt-2 text-xs text-slate-500">Adjust to see required staff at this target.</p>
               </div>
