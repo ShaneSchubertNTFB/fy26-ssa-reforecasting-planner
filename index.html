@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FY26 SSA Reforecasting Planner</title>
+  <title>FY26-SSA Reforecasting Planner</title>
   <!-- Tailwind via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -26,16 +26,16 @@
       const [navigators, setNavigators] = useState(20); // 17–23 per prompt
       const [indGoal, setIndGoal] = useState(() => Math.ceil(18225 / 20)); // per-navigator annual goal
 
-      // Ranges (per latest specs)
+      // Ranges
       const NAV_MIN = 17;
       const NAV_MAX = 23;
       const IND_MIN = 500;   // floor
       const IND_MAX = 1500;  // ceiling
-      const IND_STEP = 1;    // granularity (changed from 10 -> 1)
+      const IND_STEP = 1;    // granularity for slider
 
       // Derived calculations
       const capacity = useMemo(() => navigators * indGoal, [navigators, indGoal]);
-      const gap = useMemo(() => capacity - teamGoal, [capacity, teamGoal]);
+      const meetsGoal = useMemo(() => capacity >= teamGoal, [capacity, teamGoal]);
 
       // Required counts/targets
       const requiredNavigators = useMemo(() => {
@@ -52,11 +52,11 @@
         return Math.ceil((teamGoal / (navigators || 1)) / 12);
       }, [teamGoal, navigators]);
 
-      // Helper for +1 / -1 precision controls
+      // Precision helper for slider
       const bumpIndGoal = (delta) => {
         setIndGoal((g) => {
           const next = Math.min(IND_MAX, Math.max(IND_MIN, g + delta));
-          return Math.round(next); // keep it integer
+          return Math.round(next); // keep integer
         });
       };
 
@@ -65,9 +65,9 @@
           <div className="mx-auto max-w-5xl p-6">
             <header className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">FY26 SSA Reforecasting Planner</h1>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">FY26-SSA Reforecasting Planner</h1>
                 <p className="text-sm md:text-base text-slate-600 mt-1">
-                  Explore trade-offs between the FY26 total SNAP application team goal for SSA, the number of full-time Case Assistance Navigators (CAN'S), and annual and monthly goals for each CAN.
+                  Explore trade-offs between the FY26 total SNAP application team goal for SSA, the number of full-time case assistance navigators (CANs), and annual and monthly goals for each can.
                 </p>
               </div>
             </header>
@@ -75,7 +75,7 @@
             {/* Top inputs */}
             <section className="grid md:grid-cols-3 gap-4 mb-6">
               <div className="bg-white rounded-2xl shadow p-4">
-                <label className="block text-sm font-medium text-slate-700">FY26 team goal (total SNAP applications)</label>
+                <label className="block text-sm font-medium text-slate-700">FY26-SSA team goal (total SNAP applications)</label>
                 <div className="mt-2 flex items-center gap-2">
                   <span className="text-slate-500">#</span>
                   <input
@@ -87,11 +87,10 @@
                     onChange={(e) => setTeamGoal(Math.max(0, Number(e.target.value)))}
                   />
                 </div>
-                <p className="mt-2 text-xs text-slate-500">Example: 18,225</p>
               </div>
 
               <div className="bg-white rounded-2xl shadow p-4">
-                <label className="block text-sm font-medium text-slate-700"># of full-time Case Assistance Navigators</label>
+                <label className="block text-sm font-medium text-slate-700"># of full-time case assistance navigators</label>
                 <div className="mt-3">
                   <input
                     type="range"
@@ -119,7 +118,7 @@
               </div>
 
               <div className="bg-white rounded-2xl shadow p-4">
-                <label className="block text-sm font-medium text-slate-700">Individual annual goal per CAN</label>
+                <label className="block text-sm font-medium text-slate-700">Individual annual goal per can</label>
                 <div className="mt-3 flex items-center gap-2">
                   <input
                     type="range"
@@ -158,89 +157,52 @@
                   <span className="text-slate-900 font-semibold text-sm">{nf.format(indGoal)}</span>
                   <span>{nf.format(IND_MAX)}</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">Adjust to see required staff at this target.</p>
               </div>
             </section>
 
-            {/* Summary cards */}
-            <section className="grid md:grid-cols-4 gap-4 mb-6">
+            {/* Metrics row (4 panels) */}
+            <section className="grid md:grid-cols-4 gap-4">
+              {/* Annual capacity (current settings) */}
               <div className="bg-white rounded-2xl shadow p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Team goal</div>
-                <div className="text-2xl font-semibold mt-1">{nf.format(teamGoal)}</div>
-              </div>
-              <div className="bg-white rounded-2xl shadow p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Annual SNAP application capacity (current settings)</div>
-                <div className={`text-2xl font-semibold mt-1 ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>{nf.format(capacity)}</div>
-              </div>
-              <div className="bg-white rounded-2xl shadow p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Gap vs goal (current settings)</div>
-                <div className={`text-2xl font-semibold mt-1 ${gap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {gap >= 0 ? "+" : ""}{nf.format(gap)}
+                <div className="text-xs uppercase tracking-wide text-slate-500">Annual SNAP application capacity <span className="normal-case text-slate-400">(current settings)</span></div>
+                <div className={`text-2xl font-semibold mt-1 ${meetsGoal ? "text-emerald-600" : "text-rose-600"}`}>
+                  {nf.format(capacity)}
+                </div>
+                <div className="text-xs text-slate-500 mt-1">
+                  {meetsGoal ? "Meets or exceeds team goal" : "Below team goal"}
                 </div>
               </div>
+
+              {/* Required navigators (current settings) */}
               <div className="bg-white rounded-2xl shadow p-4">
-                <div className="text-xs uppercase tracking-wide text-slate-500">Annual avg SNAP apps per CAN @ {navigators}</div>
+                <div className="text-xs uppercase tracking-wide text-slate-500">Required navigators <span className="normal-case text-slate-400">(current settings)</span></div>
+                <div className="text-2xl font-semibold mt-1">{nf.format(requiredNavigators)}</div>
+                <div className="text-xs text-slate-500 mt-1">Ceiling of team goal ÷ individual goal.</div>
+                <div className="text-xs text-slate-500 mt-2">Current range: {NAV_MIN}–{NAV_MAX}</div>
+                <div className={`text-xs mt-1 ${requiredNavigators >= NAV_MIN && requiredNavigators <= NAV_MAX ? "text-emerald-600" : "text-rose-600"}`}>
+                  {requiredNavigators >= NAV_MIN && requiredNavigators <= NAV_MAX ? "Within range" : "Outside range"}
+                </div>
+              </div>
+
+              {/* Required individual annual goal */}
+              <div className="bg-white rounded-2xl shadow p-4">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Required individual annual goal</div>
                 <div className="text-2xl font-semibold mt-1">{nf.format(requiredIndGoal)}</div>
-                <div className="text-xs text-slate-500 mt-1">Required individual annual target if number of full-time CAN's is fixed.</div>
-              </div>
-            </section>
-
-            {/* What-if panels */}
-            <section className="grid md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-2xl shadow p-5">
-                <h2 className="font-semibold text-lg">If you fix the individual annual goal</h2>
-                <p className="text-slate-600 text-sm mt-1">…how many CAN's would be needed to hit the annual team goal?</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-slate-500">Required navigators</div>
-                    <div className="text-3xl font-bold">{nf.format(requiredNavigators)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Ceiling of team goal ÷ individual goal.</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs uppercase tracking-wide text-slate-500">Current range</div>
-                    <div className="text-sm font-medium">{NAV_MIN}–{NAV_MAX}</div>
-                    <div className={`text-xs mt-1 ${requiredNavigators >= NAV_MIN && requiredNavigators <= NAV_MAX ? "text-emerald-600" : "text-rose-600"}`}>
-                      {requiredNavigators >= NAV_MIN && requiredNavigators <= NAV_MAX ? "Within range" : "Outside range"}
-                    </div>
-                  </div>
+                <div className="text-xs text-slate-500 mt-1">Ceiling of team goal ÷ # of CANs.</div>
+                <div className="text-xs text-slate-500 mt-2">Current settings: {nf.format(indGoal)}</div>
+                <div className={`text-xs mt-1 ${indGoal >= requiredIndGoal ? "text-emerald-600" : "text-rose-600"}`}>
+                  {indGoal >= requiredIndGoal ? "Meets or exceeds" : "Below requirement"}
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow p-5">
-                <h2 className="font-semibold text-lg">If you fix the number of CAN's</h2>
-                <p className="text-slate-600 text-sm mt-1">…what individual annual goal is needed to hit the annual team goal?</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-slate-500">Required individual goal</div>
-                    <div className="text-3xl font-bold">{nf.format(requiredIndGoal)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Ceiling of team goal ÷ # of CAN's.</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs uppercase tracking-wide text-slate-500">Current settings</div>
-                    <div className="text-sm font-medium">{nf.format(indGoal)}</div>
-                    <div className={`text-xs mt-1 ${indGoal >= requiredIndGoal ? "text-emerald-600" : "text-rose-600"}`}>
-                      {indGoal >= requiredIndGoal ? "Meets or exceeds" : "Below requirement"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow p-5">
-                <h2 className="font-semibold text-lg">Monthly view (if you fix the # of CAN's)</h2>
-                <p className="text-slate-600 text-sm mt-1">…what individual monthly goal is needed to hit the annual team goal?</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-xs uppercase tracking-wide text-slate-500">Required individual monthly target</div>
-                    <div className="text-3xl font-bold">{nf.format(requiredIndGoalMonthly)}</div>
-                    <div className="text-xs text-slate-500 mt-1">Ceiling of (team goal ÷ 12) ÷ # of CAN's.</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs uppercase tracking-wide text-slate-500">Current settings</div>
-                    <div className="text-sm font-medium">{nf.format(Math.ceil(indGoal / 12))}</div>
-                    <div className={`text-xs mt-1 ${Math.ceil(indGoal / 12) >= requiredIndGoalMonthly ? "text-emerald-600" : "text-rose-600"}`}>
-                      {Math.ceil(indGoal / 12) >= requiredIndGoalMonthly ? "Meets or exceeds" : "Below requirement"}
-                    </div>
-                  </div>
+              {/* Required monthly individual goal */}
+              <div className="bg-white rounded-2xl shadow p-4">
+                <div className="text-xs uppercase tracking-wide text-slate-500">Required monthly individual goal</div>
+                <div className="text-2xl font-semibold mt-1">{nf.format(requiredIndGoalMonthly)}</div>
+                <div className="text-xs text-slate-500 mt-1">Ceiling of (team goal ÷ 12) ÷ # of CANs.</div>
+                <div className="text-xs text-slate-500 mt-2">Current settings: {nf.format(Math.ceil(indGoal / 12))}</div>
+                <div className={`text-xs mt-1 ${Math.ceil(indGoal / 12) >= requiredIndGoalMonthly ? "text-emerald-600" : "text-rose-600"}`}>
+                  {Math.ceil(indGoal / 12) >= requiredIndGoalMonthly ? "Meets or exceeds" : "Below requirement"}
                 </div>
               </div>
             </section>
