@@ -121,9 +121,9 @@
                 </div>
               </div>
 
-              {/* Annual SNAP app. goal per CAN. */}
+              {/* Annual SNAP application goal per CAN. */}
               <div className="bg-white rounded-2xl shadow p-4">
-                <label className="block text-sm font-medium text-slate-700">Annual SNAP app. goal per CAN.</label>
+                <label className="block text-sm font-medium text-slate-700">Annual SNAP application goal per CAN</label>
                 <div className="mt-3 flex items-center gap-2">
                   <input
                     type="range"
@@ -167,10 +167,10 @@
 
             {/* Metrics row (4 panels) */}
             <section className="grid md:grid-cols-4 gap-4">
-              {/* Annual SNAP app. capacity (based on current settings) */}
+              {/* Annual SNAP application capacity (based on current settings) */}
               <div className="bg-white rounded-2xl shadow p-4">
                 <div className="text-xs tracking-wide text-slate-500">
-                  Annual SNAP app. capacity <span className="normal-case text-slate-400">(based on current settings)</span>
+                  Annual SNAP application capacity <span className="normal-case text-slate-400">(based on current settings)</span>
                 </div>
                 <div className={`text-2xl font-semibold mt-1 ${meetsGoal ? "text-emerald-600" : "text-rose-600"}`}>
                   {nf.format(capacity)}
